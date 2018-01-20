@@ -304,8 +304,10 @@ def startAudio():
     log('Started Janus')
 
     def startGstreamerAudio():
-        spawnNonDaemonProcess(reactor, LoggingProtocol('gstream-audio'), '/bin/sh',
-                              ['sh', 'gstream_audio.sh'])
+        #spawnNonDaemonProcess(reactor, LoggingProtocol('gstream-audio'), '/bin/sh',
+        #                      ['sh', 'gstream_audio.sh'])
+    	spawnNonDaemonProcess(reactor, LoggingProtocol('gstream-audio'), '/usr/bin/python',
+                              ['python', 'gstream_audio.py'])
         log('Started gstreamer audio')
 
     reactor.callLater(2, startGstreamerAudio)
@@ -392,9 +394,10 @@ class SleepMonitorApp:
             log('Started webserver at port %d' % BACKUP_PORT)
 
         startZeroConfServer(portUsed)
-
-        startAudioIfAvailable()
-
+        
+        startAudio()		#IfAvailable()
+		
+		
         reactor.run()
 
     def resetAfterConfigUpdate(self):

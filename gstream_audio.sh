@@ -15,7 +15,7 @@
 # of the tee "stalls" i.e., never seems to run.
 
 gst-launch-1.0 -v \
-    alsasrc device=plughw:1,0 \
+    alsasrc device="plug:dmic_sv" \
         ! audioresample \
         ! audio/x-raw,channels=1,rate=16000 \
         ! opusenc bitrate=20000 \
