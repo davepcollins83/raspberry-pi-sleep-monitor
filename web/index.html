@@ -17,6 +17,20 @@
     <script type="text/javascript" src="js/SleepMonitorApp.js"></script>
     <script type="text/javascript" src="js/stream.js"></script>
     <script type="text/javascript" src="js/cam.js"></script>
+	<script type="text/javascript" src="js/meter.js"></script>    
+    
+    <script>
+    
+        	function update() {
+    		$.get("/getTemp", function(temp) {
+    			$("#muteButton").html(temp); window.setTimeout(update, 10000); 
+    		});
+    	}
+    	
+    	update();
+    </script>
+    
+    
 
     <link rel="stylesheet" type="text/css" href="main.css"/>
   </head>
@@ -24,6 +38,14 @@
     <div id="imageContainer">
       <img id="latest" src="/stream.mjpeg">
     </div>
+        <div id="vuMeterDiv">
+    	<meter id="vuMeter" value="0" min="0" max="2.5"  optimum="0.5" low="1.5" high="2.0">
+    	<span id="vuMeterValue">0.0</span>
+    </div>
+    <div id="muteButtonDiv">
+		<button id="muteButton" class="w3-button w3-circle w3-black" onclick="toggleMute()">*</button>
+		<button id="playButton" class="w3-button w3-circle w3-black" onclick="playMusic()">></button>
+	</div>
 
     <div id="alarmsContainer">
       <div id="internetConnectionAlarm" class="alarm">Internet connection to Pi lost!</div>

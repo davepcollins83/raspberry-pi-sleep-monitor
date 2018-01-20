@@ -12,6 +12,15 @@ import os
 import json
 import subprocess
 
+# added for temp sensor:
+import glob
+import time
+
+# added for web templating
+# import jinja2
+
+
+
 from ProcessProtocolUtils import spawnNonDaemonProcess, \
         TerminalEchoProcessProtocol
 from OximeterReader import OximeterReader
@@ -21,6 +30,39 @@ from LoggingUtils import log, setupLogging, LoggingProtocol
 
 from Config import Config
 from Constants import MotionReason
+
+# for Jinja2 templates
+
+template_dir = '{}/web/'.format(os.path.dirname(os.path.realpath(__file__)))
+
+# for temp reading
+
+os.system('modprobe w1-gpio')
+os.system('modprobe w1-therm')
+ 
+base_dir = '/sys/bus/w1/devices/'
+device_folder = glob.glob(base_dir + '28*')[0]
+device_file = device_folder + '/w1_slave'
+
+def read_temp_raw():
+    f = open(device_file, 'r')
+    lines = f.readlines()
+    f.close()
+    return lines
+ 
+def read_temp():
+    lines = read_temp_raw()
+    while lines[0].strip()[-3:] != 'YES':
+        time.sleep(0.2)
+        lines = read_temp_raw()
+    equals_pos = lines[1].find('t=')
+    if equals_pos != -1:
+        temp_string = lines[1][equals_pos+2:]
+        temp_c = float(temp_string) / 1000.0
+        # temp_f = temp_c * 9.0 / 5.0 + 32.0
+        return temp_c
+        
+
 
 def async_sleep(seconds):
     d = defer.Deferred()
@@ -322,6 +364,18 @@ def startAudioIfAvailable():
     else:
         log('Audio not detected. Starting in silent mode')
 
+
+class GetTemp(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+		
+	def render_GET(self, request):
+		request.setHeader("content-type", "text/html")
+		temp = read_temp()
+	
+		return bytes(temp)
+
+
 class SleepMonitorApp:
     def startGstreamerVideo(self):
 
@@ -379,6 +433,9 @@ class SleepMonitorApp:
         root.putChild('ping', PingResource())
         root.putChild('getConfig', GetConfigResource(self))
         root.putChild('updateConfig', UpdateConfigResource(self))
+        
+        # added
+        root.putChild('getTemp', GetTemp(self))
 
         site = server.Site(root)
         PORT = 80
