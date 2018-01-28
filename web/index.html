@@ -17,40 +17,74 @@
     <script type="text/javascript" src="js/SleepMonitorApp.js"></script>
     <script type="text/javascript" src="js/stream.js"></script>
     <script type="text/javascript" src="js/cam.js"></script>
-	<script type="text/javascript" src="js/meter.js"></script>    
+	<script type="text/javascript" src="js/meter.js"></script>
+	    
     
     <script>
     
         	function update() {
     		$.get("/getTemp", function(temp) {
-    			$("#muteButton").html(temp); window.setTimeout(update, 10000); 
+    			tempString = parseFloat(temp).toFixed(1);
+    			$("#tempButton").html(tempString);
+    			window.setTimeout(update, 10000); 
     		});
     	}
     	
     	update();
+    	
+    	    	function playMusic() {
+    		$.get("/playMusic");
+    	}
+    	
+
+    	
     </script>
     
     
 
-    <link rel="stylesheet" type="text/css" href="main.css"/>
+    
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="main.css"/>
+	<link rel="manifest" href="/manifest.json">
   </head>
   <body>
     <div id="imageContainer">
       <img id="latest" src="/stream.mjpeg">
     </div>
         <div id="vuMeterDiv">
-    	<meter id="vuMeter" value="0" min="0" max="2.5"  optimum="0.5" low="1.5" high="2.0">
-    	<span id="vuMeterValue">0.0</span>
+    	<meter id="vuMeter" value="0" min="0" max="10"  optimum="3" low="5" high="9">
     </div>
-    <div id="muteButtonDiv">
-		<button id="muteButton" class="w3-button w3-circle w3-black" onclick="toggleMute()">*</button>
-		<button id="playButton" class="w3-button w3-circle w3-black" onclick="playMusic()">></button>
+    <div id="tempButtonDiv">
+		<button id="tempButton" class="w3-button w3-circle w3-black w3-center">*</button>
 	</div>
-
+	<div id="musicButtonDiv">	
+		<button id="musicButton" class="w3-button w3-circle w3-black" onclick="playMusic()"><span class="glyphicon glyphicon-play"></span></button>
+	</div>
+	<div id="sheepButtonDiv">	
+		<button id="musicButton" class="w3-button w3-circle w3-black">
+		<span class="glyphicon glyphicon-cloud"></span></button>
+	</div>
+	<div id="settingsButtonDiv">	
+		<button id="settingsButton" class="w3-button w3-circle w3-black" onclick="window.open('update_config.html')">
+				<span class="glyphicon glyphicon-option-horizontal"></span></button>
+	</div>
+	
     <div id="alarmsContainer">
       <div id="internetConnectionAlarm" class="alarm">Internet connection to Pi lost!</div>
     </div>
 
-    <div id="config"><a href="update_config.html" target="_blank">Configure thresholds</a></div>
+    <script>
+    
+    $(document).ready(function(){
+    	$("#vuMeter").click( function (){
+    		
+    		var vid = document.getElementById('remotevideo');
+   			if(vid.volume == 0) vid.volume = 1;
+   			else vid.volume = 0;
+		});
+		});
+		
+	</script>
   </body>
 </html>

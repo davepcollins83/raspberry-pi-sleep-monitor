@@ -3,7 +3,7 @@ import os
 
 class Config:
     def __init__(self):
-        self.paramNames = ('sustainedTime', 'calmTime', 'awakeBpm', 'spo2AlarmThreshold', 'spo2AlarmTime')
+        self.paramNames = ('soundThreshold', 'soundSensitivity', 'sustainedTime', 'calmTime', 'awakeBpm', 'spo2AlarmThreshold', 'spo2AlarmTime')
 
         # Time (in seconds) for which we need to see sustained motion to claim that
         # the baby is moving
@@ -23,6 +23,12 @@ class Config:
         # Time (in seconds) for which we need to see the SPO2 fall below
         # `spo2AlarmThreshold` to raise an alarm
         self.spo2AlarmTime = 20
+        
+        # Threshold below 0dB which will unmute audio (0-10)
+        self.soundThreshold = 3
+        
+        # Sensitivity of min (0-10)
+        self.soundSensitivity = 4
 
         configPath = self.getConfigFilePath()
         if os.path.isfile(configPath):

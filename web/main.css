@@ -1,5 +1,5 @@
 body {
-    background-color: black;
+    background-color: #bee3ff;
     margin: 0px;
 }
 
@@ -65,27 +65,84 @@ body {
 	margin:auto;
 	position: absolute;
 	top:50%;bottom:50%; /* vertical center */
-	right: 50px;
+	right: -4.5%;
 }
 
 #vuMeter{
 	width: 250px;
-	height: 50px;
+	height: 25px;
 	-webkit-transform: rotate(-90deg);
 	-moz-transform: rotate(-90deg);
 	-o-transform: rotate(-90deg);
 	transform: rotate(-90deg);
 }
 
-#muteButtonDiv
+#tempButtonDiv
 {
+	text-align: center;
+	margin: auto;
+    position: absolute;
 	position: absolute;
-	top: 50px;
-	left: 100px;
+	top: 5%; bottom: 95%;
+	left: 3%; right: 97%;
 	z-index: 5;
 }
 
-#muteButton{
+#sheepButtonDiv
+{
+	margin: auto;
+    position: absolute;
+	position: absolute;
+	bottom: 5%;
+	left: 3%;
+	z-index: 5;
+}
+
+#settingsButtonDiv
+{
+	margin: auto;
+    position: absolute;
+	position: absolute;
+	top: 5%;
+	right: 3%;
+	z-index: 5;
+}
+
+#musicButtonDiv
+{
+	margin: auto;
+    position: absolute;
+	position: absolute;
+	bottom: 5%;
+	right: 3%;
+	z-index: 5;
+}
+
+#tempButton{
+	text-align: center;
 	width: 50px;
 	height: 50px;
+	padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    button:focus {outline:0;}
+}
+
+#sheepButton{
+	width: 50px;
+	height: 50px;
+	button:focus {outline:0;}
+}
+
+#settingsButton{
+	width: 50px;
+	height: 50px;
+	button:focus {outline:0;}
+}
+
+#musicButton{
+	width: 50px;
+	height: 50px;
+	button:focus {outline:0;}
 }

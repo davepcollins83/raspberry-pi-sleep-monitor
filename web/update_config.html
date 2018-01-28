@@ -29,8 +29,8 @@
     Time (in seconds) for which if there is no motion, we think the baby has
     gone back to sleep: <br/>
     <input type="text" name="calmTime" value="30"><p/>
-
-    Heart rate (beats per minute) above which we think of the baby as being
+	
+    <!--Heart rate (beats per minute) above which we think of the baby as being
     awake. This is used in addition to any motion detected by the
     camera: <br/>
     <input type="text" name="awakeBpm" value="140"><p/>
@@ -40,8 +40,14 @@
 
     Time (in seconds) for which we need to see the SPO2 fall below
     the previous threshold to raise an alarm: <br/>
-    <input type="text" name="spo2AlarmTime" value="20"><p/>
-
+    <input type="text" name="spo2AlarmTime" value="20"><p/>-->
+	
+	Sound cutoff level (1 to 10): <br/>
+    <input type="text" name="soundThreshold" value="2"><p/>
+    
+    Sensitivity of Microphone (1 to 10) - default is 5, higher is more sensitive: <br/>
+    <input type="text" name="soundSensitivity" value="2"><p/>
+	
     <input type="button" id="submit" value="Submit">
   </body>
 </html>

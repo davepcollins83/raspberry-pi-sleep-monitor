@@ -37,6 +37,7 @@ $(function() {
         }).success(function(data) {
             $('#submit').prop('disabled', false);
             console.log('success');
+            console.log(config);
         });
     });
 });

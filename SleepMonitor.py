@@ -19,7 +19,8 @@ import time
 # added for web templating
 # import jinja2
 
-
+# added to play sound
+# import pyglet
 
 from ProcessProtocolUtils import spawnNonDaemonProcess, \
         TerminalEchoProcessProtocol
@@ -43,6 +44,9 @@ os.system('modprobe w1-therm')
 base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
+
+# for sound
+# player = pyglet.media.Player()
 
 def read_temp_raw():
     f = open(device_file, 'r')
@@ -375,6 +379,25 @@ class GetTemp(resource.Resource):
 	
 		return bytes(temp)
 
+class PlayMusic(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+		
+	def render_GET(self, request):
+
+		spawnNonDaemonProcess(reactor, LoggingProtocol('music-player'), '/bin/sh',
+                              ['sh', 'play_sound.sh'])
+		return
+		
+class StopMusic(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+		
+	def render_GET(self, request):
+
+		spawnNonDaemonProcess(reactor, LoggingProtocol('music-player'), '/bin/sh',
+                              ['sh', 'stop_sound.sh'])
+		return	
 
 class SleepMonitorApp:
     def startGstreamerVideo(self):
@@ -436,6 +459,8 @@ class SleepMonitorApp:
         
         # added
         root.putChild('getTemp', GetTemp(self))
+        root.putChild('playMusic', PlayMusic(self))
+        root.putChild('stopMusic', StopMusic(self))
 
         site = server.Site(root)
         PORT = 80
