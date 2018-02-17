@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from twisted.internet import reactor, protocol, defer, interfaces
+from twisted.internet import reactor, protocol, defer, interfaces, ssl
 import twisted.internet.error
 from twisted.web import server, resource
 from twisted.web.static import File
@@ -461,15 +461,27 @@ class SleepMonitorApp:
         root.putChild('getTemp', GetTemp(self))
         root.putChild('playMusic', PlayMusic(self))
         root.putChild('stopMusic', StopMusic(self))
-
+        
+        sslContext = ssl.DefaultOpenSSLContextFactory(
+			'/home/pi/ssl/privkey.pem', 
+			'/home/pi/ssl/cacert.pem',
+			)
+		
         site = server.Site(root)
+        #PORT = 443
         PORT = 80
+        #BACKUP_PORT = 80
         BACKUP_PORT = 8080
-
+	
         portUsed = PORT
         try:
             reactor.listenTCP(PORT, site)
             log('Started webserver at port %d' % PORT)
+            #reactor.listenSSL(
+				#PORT, # integer port 
+				#site, # our site object, see the web howto
+				#contextFactory = sslContext,
+			#)
         except twisted.internet.error.CannotListenError:
             portUsed = BACKUP_PORT
             reactor.listenTCP(BACKUP_PORT, site)
