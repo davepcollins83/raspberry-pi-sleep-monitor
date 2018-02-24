@@ -4,32 +4,32 @@ Forked from the original here: https://github.com/srinathava/raspberry-pi-sleep-
 
 v3.0 - Minimum viable product
 
-Working:
+**Working:**
 
-<b>Video and Audio streaming</b>
-Audio VUMeter - adjustable sensitivity
-Adjustable noise gate
+*Video and Audio streaming*  
+Audio VUMeter - adjustable sensitivity  
+Adjustable noise gate  
 
-<b>Music Player</b>
+*Music Player*  
 Start/stop music on button
 
-<b>Dashboard</b>
+*Dashboard*  
 Link to dashboard
 
-<b>Control Neopixel lamp (through Digispark)</b>
+*Control Neopixel lamp (through Digispark)*  
 Set colour in config
 Toggle with button
 
-<b>Control Ewan the Dream Sheep (through Digispark)</b>
+*Control Ewan the Dream Sheep (through Digispark)*  
 Short press for on, long for off
 
-Still to do:
+**Still to do:**
 
-Variable gain
-Select music player
-Motion control of sheep
-Wireless control of sheep
-Button toggle sheep
-Dashboard - log temp and sound
-Additional light patterns
+Variable gain  
+Select music player  
+Motion control of sheep  
+Wireless control of sheep  
+Button toggle sheep  
+Dashboard - log temp and sound  
+Additional light patterns  
 Timing of audio level events
