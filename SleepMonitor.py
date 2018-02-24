@@ -22,6 +22,13 @@ import time
 # added to play sound
 # import pyglet
 
+# added for i2c
+import smbus
+bus = smbus.SMBus(1)
+
+# This is the address we setup in the Arduino Program
+address = 0x04
+
 from ProcessProtocolUtils import spawnNonDaemonProcess, \
         TerminalEchoProcessProtocol
 from OximeterReader import OximeterReader
@@ -45,9 +52,6 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
 
-# for sound
-# player = pyglet.media.Player()
-
 def read_temp_raw():
     f = open(device_file, 'r')
     lines = f.readlines()
@@ -66,6 +70,11 @@ def read_temp():
         # temp_f = temp_c * 9.0 / 5.0 + 32.0
         return temp_c
         
+# for i2c
+
+def writeDigispark(device, i2cData):
+	bus.write_i2c_block_data(address, device, i2cData)
+	return -1
 
 
 def async_sleep(seconds):
@@ -210,6 +219,9 @@ class StatusResource(resource.Resource):
         self.app = app
         self.motionDetectorStatusReader = self.app.motionDetectorStatusReader
         self.oximeterReader = self.app.oximeterReader
+        self.sheepWatching = self.app.sheepWatching
+        self.sheepPlaying = self.app.sheepPlaying
+        self.lamp = self.app.lamp
 
     def render_GET(self, request):
         request.setHeader("content-type", 'application/json')
@@ -219,9 +231,11 @@ class StatusResource(resource.Resource):
         if self.motionDetectorStatusReader.motionSustained:
             motion = 1
             motionReason = MotionReason.CAMERA
+            StartSheep(self) #if sheep activated
         elif self.oximeterReader.motionSustained:
             motion = 1
             motionReason = MotionReason.BPM
+        # Add line in here to detect motion based on sound
 
         status = {
             'SPO2': self.oximeterReader.SPO2,
@@ -230,7 +244,10 @@ class StatusResource(resource.Resource):
             'motion': motion,
             'motionReason': motionReason,
             'readTime': self.oximeterReader.readTime.isoformat(),
-            'oximeterStatus': self.oximeterReader.status
+            'oximeterStatus': self.oximeterReader.status,
+            'sheepWatching' : self.sheepWatching,
+            'sheepPlaying' : self.sheepPlaying,
+            'lamp' : self.lamp
         }
         return json.dumps(status)
 
@@ -399,6 +416,51 @@ class StopMusic(resource.Resource):
                               ['sh', 'stop_sound.sh'])
 		return	
 
+
+class StartSheep(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+		
+	def render_GET(self, request):
+		# start timer here
+		log('Start Sheep')
+		writeDigispark(1, [1])
+		return
+
+class StopSheep(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+		
+	def render_GET(self, request):
+
+		log('Stop Sheep')
+		writeDigispark(1, [2])
+		return
+
+class ToggleLamp(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+		
+	def render_GET(self, request):
+
+		self.lamp = self.app.lamp
+		red = getattr(self.app.config, 'red')
+		green = getattr(self.app.config, 'green')
+		blue = getattr(self.app.config, 'blue')
+		white = getattr(self.app.config, 'white')
+		
+		if self.lamp == 0:
+			writeDigispark(2, [1, red, green, blue, white])
+			self.app.lamp = 1;
+			log('Lamp On')
+		else:
+			writeDigispark(2, [1, 0, 0, 0, 0])
+			self.app.lamp = 0;
+			log('Lamp Off')			
+		
+		return
+
+
 class SleepMonitorApp:
     def startGstreamerVideo(self):
 
@@ -425,6 +487,11 @@ class SleepMonitorApp:
 
         self.config = Config()
         self.reactor = reactor
+        
+        self.sheepWatching = 0
+        self.sheepPlaying = 0
+        
+        self.lamp = 0
 
         self.oximeterReader = OximeterReader(self)
 
@@ -461,6 +528,9 @@ class SleepMonitorApp:
         root.putChild('getTemp', GetTemp(self))
         root.putChild('playMusic', PlayMusic(self))
         root.putChild('stopMusic', StopMusic(self))
+        root.putChild('startSheep', StartSheep(self))
+        root.putChild('stopSheep', StopSheep(self))
+        root.putChild('toggleLamp', ToggleLamp(self))
         
         sslContext = ssl.DefaultOpenSSLContextFactory(
 			'/home/pi/ssl/privkey.pem', 
@@ -499,6 +569,7 @@ class SleepMonitorApp:
         self.config.write()
         self.oximeterReader.reset()
         self.motionDetectorStatusReader.reset()
+        # update light settings
 
 if __name__ == "__main__":
     import logging

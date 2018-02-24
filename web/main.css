@@ -146,3 +146,19 @@ body {
 	height: 50px;
 	button:focus {outline:0;}
 }
+
+#lightButtonDiv
+{
+	margin: auto;
+    position: absolute;
+	position: absolute;
+	bottom: 50%;
+	left: 3%;
+	z-index: 5;
+}
+
+#lightButton{
+	width: 50px;
+	height: 50px;
+	button:focus {outline:0;}
+}
