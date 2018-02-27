@@ -32,7 +32,7 @@
     		});
     	}
     	
-    	update();
+    	//update();
     	
     	    	function playMusic() {
     		$.get("/playMusic");
@@ -51,6 +51,7 @@
 	<link rel="manifest" href="/manifest.json">
 	<meta name="viewport" content="initial-scale=1.0, width=device-width, user-scalable=no" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<link rel="apple-touch-icon" href="/launcher_icon-2x.png">
   </head>
   <body>
     <div id="imageContainer">
@@ -60,7 +61,8 @@
     	<meter id="vuMeter" value="0" min="0" max="10"  optimum="3" low="5" high="9">
     </div>
     <div id="tempButtonDiv">
-		<button id="tempButton" class="w3-button w3-circle w3-black w3-center">*</button>
+		<button id="tempButton" class="w3-button w3-circle w3-black w3-center">
+		<span class="glyphicon glyphicon-stats"></span></button>
 	</div>
 	<div id="musicButtonDiv">	
 		<button id="musicButton" class="w3-button w3-circle w3-black">

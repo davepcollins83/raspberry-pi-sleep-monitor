@@ -49,8 +49,8 @@ os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
  
 base_dir = '/sys/bus/w1/devices/'
-device_folder = glob.glob(base_dir + '28*')[0]
-device_file = device_folder + '/w1_slave'
+#device_folder = glob.glob(base_dir + '28*')[0]
+#device_file = device_folder + '/w1_slave'
 
 def read_temp_raw():
     f = open(device_file, 'r')
@@ -297,14 +297,15 @@ class InfluxLoggerClient(LoggingProtocol):
     def __init__(self):
         LoggingProtocol.__init__(self, 'InfluxLogger')
 
-    def log(self, spo2, bpm, motion, alarm):
-        self.transport.write('%d %d %d %d\n' % (spo2, bpm, motion, alarm))
+    def log(self, spo2, bpm, motion, alarm, temp):
+        self.transport.write('%d %d %d %d %d\n' % (spo2, bpm, motion, alarm, temp))
 
 class Logger:
     def __init__(self, app):
         self.oximeterReader = app.oximeterReader
         self.influxLogger = app.influxLogger
         self.motionDetectorStatusReader = app.motionDetectorStatusReader
+        self.temp = app.temp
 
         self.lastLogTime = datetime.min
         self.logFile = None
@@ -320,8 +321,9 @@ class Logger:
             bpm = self.oximeterReader.BPM
             alarm = self.oximeterReader.alarm
             motionDetected = self.motionDetectorStatusReader.motionDetected
+            temp = self.temp
 
-            self.influxLogger.log(spo2, bpm, motionDetected, alarm)
+            self.influxLogger.log(spo2, bpm, motionDetected, alarm, temp)
 
             tnow = datetime.now()
             if self.oximeterReader.SPO2 != -1:
@@ -392,8 +394,9 @@ class GetTemp(resource.Resource):
 		
 	def render_GET(self, request):
 		request.setHeader("content-type", "text/html")
-		temp = read_temp()
-	
+		temp = 0 #read_temp()
+		self.app.temp = temp
+		
 		return bytes(temp)
 
 class PlayMusic(resource.Resource):
@@ -425,6 +428,7 @@ class StartSheep(resource.Resource):
 		# start timer here
 		log('Start Sheep')
 		writeDigispark(1, [1])
+		self.app.sheepPlaying = 1
 		return
 
 class StopSheep(resource.Resource):
@@ -435,6 +439,7 @@ class StopSheep(resource.Resource):
 
 		log('Stop Sheep')
 		writeDigispark(1, [2])
+		self.app.sheepPlaying = 0
 		return
 
 class ToggleLamp(resource.Resource):
@@ -494,6 +499,7 @@ class SleepMonitorApp:
         self.lamp = 0
 
         self.oximeterReader = OximeterReader(self)
+        self.temp = 0
 
         self.motionDetectorStatusReader = MotionDetectionStatusReaderProtocol(self)
         spawnNonDaemonProcess(reactor, self.motionDetectorStatusReader, 'python',
@@ -569,7 +575,8 @@ class SleepMonitorApp:
         self.config.write()
         self.oximeterReader.reset()
         self.motionDetectorStatusReader.reset()
-        # update light settings
+        log(self.temp)
+        # update light settings - toggle lamp variable then trigger toggleLamp()
 
 if __name__ == "__main__":
     import logging

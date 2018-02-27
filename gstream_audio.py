@@ -32,7 +32,7 @@ class Main:
 
 	level = Gst.ElementFactory.make("level", "level")
 	level.set_property("message", "true")
-	#level.set_property("interval", 1000000)
+	level.set_property("interval", 1000000000)
 
 	opusenc = Gst.ElementFactory.make("opusenc", "opus-enc")
 	opusenc.set_property("bitrate", 20000)
@@ -84,10 +84,15 @@ class Main:
 			
 			print peak_float
 			
-			#with open('web/js/vol_data.json') as data_file:
-				#data_loaded = json.load(data_file)
-    			
-    		json_data = {'peak' : peak_float}
+			with open('web/js/vol_data.json') as data_file:
+				data_loaded = json.load(data_file)
+			
+			peak_max = data_loaded['peak_max']	
+			
+			if peak_float > peak_max:
+				peak_max = peak_float
+    		
+    		json_data = {'peak' : peak_float, 'peak_max' : peak_max}
     		
     		with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
     			str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)

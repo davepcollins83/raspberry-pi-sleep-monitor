@@ -152,6 +152,7 @@ body {
 	margin: auto;
     position: absolute;
 	position: absolute;
+	top: 50%;
 	bottom: 50%;
 	left: 3%;
 	z-index: 5;
