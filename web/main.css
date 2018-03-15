@@ -62,19 +62,23 @@ body {
 }
 
 #vuMeterDiv{
+	transform-origin: top center;
+	width: 25px;
+	height: 200px;
 	margin:auto;
 	position: absolute;
 	top:50%;bottom:50%; /* vertical center */
-	right: -4.5%;
-}
-
-#vuMeter{
-	width: 250px;
-	height: 25px;
+	margin-top: 100px;
+	left:90%; right: 10%;
 	-webkit-transform: rotate(-90deg);
 	-moz-transform: rotate(-90deg);
 	-o-transform: rotate(-90deg);
 	transform: rotate(-90deg);
+}
+
+#vuMeter{
+	width: 200px;
+	height: 25px;
 }
 
 #tempButtonDiv
@@ -151,10 +155,10 @@ body {
 {
 	margin: auto;
     position: absolute;
-	position: absolute;
-	top: 50%;
-	bottom: 50%;
+    display: block;
 	left: 3%;
+	top: 50%;
+	margin-top: -25px;
 	z-index: 5;
 }
 

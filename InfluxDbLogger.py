@@ -6,6 +6,9 @@ from twisted.protocols import basic
 from datetime import datetime, timedelta
 from influxdb import InfluxDBClient
 
+import json
+import io
+
 HOST = "localhost"
 PORT = 9001
 USER = "pi"
@@ -46,25 +49,28 @@ class ProcessInput(basic.LineReceiver):
     def lineReceived(self, line):
         nums = [int(s) for s in line.split()]
         (spo2, bpm, motion, alarm, temp) = nums
-		
-		log(nums)
-		
+
+		#log(nums)
+
         time = datetime.utcnow()
-        
+
+        peak_max = 0
+        peak_float = 0
+
         if self.shouldLog(time, spo2, bpm, motion, alarm):
-        	
-        	with open('web/js/vol_data.json') as data_file:
-        		data_loaded = json.load(data_file) 
-        		
+
+            with open('web/js/vol_data.json') as data_file:
+                data_loaded = json.load(data_file)
+
         	peak_max = data_loaded['peak_max']
-        	peak = data_loaded['peak']
-        	
-        	#json_data = {'peak' : peak_float, 'peak_max' : -10}
-    		
-    		#with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
-    		#	str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
-    		#	outfile.write(unicode(str_))
-        		
+            peak_float = data_loaded['peak']
+
+            json_data = {'peak' : peak_float, 'peak_max' : -10}
+
+            with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
+                str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+                outfile.write(unicode(str_))
+
         	json_body = [{
                 "measurement": self.session,
                 "tags": {
@@ -76,14 +82,14 @@ class ProcessInput(basic.LineReceiver):
                     "bpm": bpm,
                     "motion": motion,
                     "alarm": alarm,
-                    "audio": peak_max,
+                    "audio_float": peak_max,
                     "temp": temp
                 }
-            }]
+            	}]
 
-            # Write JSON to InfluxDB
-            self.client.write_points(json_body)
-            self.lastLogTime = time
+                self.client.write_points(json_body)
+                self.lastLogTime = time
+                #check
 
         self.lastSpo2 = spo2
         self.lastBpm = bpm

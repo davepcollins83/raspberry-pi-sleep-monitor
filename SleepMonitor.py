@@ -5,6 +5,7 @@ import twisted.internet.error
 from twisted.web import server, resource
 from twisted.web.static import File
 from zope.interface import implementer
+from threading import Timer
 
 import re
 from datetime import datetime, timedelta
@@ -47,17 +48,44 @@ template_dir = '{}/web/'.format(os.path.dirname(os.path.realpath(__file__)))
 
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
- 
+
 base_dir = '/sys/bus/w1/devices/'
-#device_folder = glob.glob(base_dir + '28*')[0]
-#device_file = device_folder + '/w1_slave'
+device_folder = glob.glob(base_dir + '28*')[0]
+device_file = device_folder + '/w1_slave'
+
+def ClearSheep():
+    self.app.sheepPlaying = 0
+
+class RepeatingTimer(object):
+
+    def __init__(self, interval, f, *args, **kwargs):
+        self.interval = interval
+        self.f = f
+        self.args = args
+        self.kwargs = kwargs
+
+        #self.timer = None
+        self.timer = Timer(self.interval, self.callback)
+
+    def callback(self):
+        self.f(*self.args, **self.kwargs)
+        self.start()
+
+    def cancel(self):
+        self.timer.cancel()
+
+    def start(self):
+        #self.timer = Timer(self.interval, self.callback)
+        self.timer.start()
+
+t = RepeatingTimer(900, ClearSheep)
 
 def read_temp_raw():
     f = open(device_file, 'r')
     lines = f.readlines()
     f.close()
     return lines
- 
+
 def read_temp():
     lines = read_temp_raw()
     while lines[0].strip()[-3:] != 'YES':
@@ -69,7 +97,7 @@ def read_temp():
         temp_c = float(temp_string) / 1000.0
         # temp_f = temp_c * 9.0 / 5.0 + 32.0
         return temp_c
-        
+
 # for i2c
 
 def writeDigispark(device, i2cData):
@@ -219,9 +247,6 @@ class StatusResource(resource.Resource):
         self.app = app
         self.motionDetectorStatusReader = self.app.motionDetectorStatusReader
         self.oximeterReader = self.app.oximeterReader
-        self.sheepWatching = self.app.sheepWatching
-        self.sheepPlaying = self.app.sheepPlaying
-        self.lamp = self.app.lamp
 
     def render_GET(self, request):
         request.setHeader("content-type", 'application/json')
@@ -231,7 +256,6 @@ class StatusResource(resource.Resource):
         if self.motionDetectorStatusReader.motionSustained:
             motion = 1
             motionReason = MotionReason.CAMERA
-            StartSheep(self) #if sheep activated
         elif self.oximeterReader.motionSustained:
             motion = 1
             motionReason = MotionReason.BPM
@@ -245,9 +269,10 @@ class StatusResource(resource.Resource):
             'motionReason': motionReason,
             'readTime': self.oximeterReader.readTime.isoformat(),
             'oximeterStatus': self.oximeterReader.status,
-            'sheepWatching' : self.sheepWatching,
-            'sheepPlaying' : self.sheepPlaying,
-            'lamp' : self.lamp
+            'sheepWatching' : self.app.sheepWatching,
+            'sheepPlaying' : self.app.sheepPlaying,
+            'lamp' : self.app.lamp,
+            'temp' : self.app.temp
         }
         return json.dumps(status)
 
@@ -391,61 +416,79 @@ def startAudioIfAvailable():
 class GetTemp(resource.Resource):
 	def __init__(self, app):
 		self.app = app
-		
+
 	def render_GET(self, request):
 		request.setHeader("content-type", "text/html")
-		temp = 0 #read_temp()
+		temp = read_temp()
 		self.app.temp = temp
-		
+
 		return bytes(temp)
 
 class PlayMusic(resource.Resource):
 	def __init__(self, app):
 		self.app = app
-		
+
 	def render_GET(self, request):
 
 		spawnNonDaemonProcess(reactor, LoggingProtocol('music-player'), '/bin/sh',
                               ['sh', 'play_sound.sh'])
 		return
-		
+
 class StopMusic(resource.Resource):
 	def __init__(self, app):
 		self.app = app
-		
+
 	def render_GET(self, request):
 
 		spawnNonDaemonProcess(reactor, LoggingProtocol('music-player'), '/bin/sh',
                               ['sh', 'stop_sound.sh'])
-		return	
-
-
-class StartSheep(resource.Resource):
-	def __init__(self, app):
-		self.app = app
-		
-	def render_GET(self, request):
-		# start timer here
-		log('Start Sheep')
-		writeDigispark(1, [1])
-		self.app.sheepPlaying = 1
 		return
 
-class StopSheep(resource.Resource):
-	def __init__(self, app):
-		self.app = app
-		
-	def render_GET(self, request):
 
-		log('Stop Sheep')
-		writeDigispark(1, [2])
-		self.app.sheepPlaying = 0
-		return
+
+def StartSheep():
+    log('Start Sheep')
+    writeDigispark(1, [1])
+    t.cancel()
+    t.start()
+
+def StopSheep():
+    log('Stop Sheep')
+    writeDigispark(1, [2])
+    t.cancel()
+
+class ToggleSheep(resource.Resource):
+    def __init__(self, app):
+        self.app = app
+
+    def render_GET(self, request):
+        if self.app.sheepPlaying == 0:
+            self.app.sheepPlaying = 1
+            StartSheep()
+        else:
+            self.app.sheepPlaying = 0
+            StopSheep()
+
+
+        return
+
+
+class SetSheep(resource.Resource):
+    def __init__(self, app):
+        self.app = app
+
+    def render_GET(self, request):
+        if self.app.sheepWatching == 0:
+            self.app.sheepWatching = 1
+        else:
+            self.app.sheepWatching = 0
+
+        return
 
 class ToggleLamp(resource.Resource):
 	def __init__(self, app):
 		self.app = app
-		
+
 	def render_GET(self, request):
 
 		self.lamp = self.app.lamp
@@ -453,17 +496,18 @@ class ToggleLamp(resource.Resource):
 		green = getattr(self.app.config, 'green')
 		blue = getattr(self.app.config, 'blue')
 		white = getattr(self.app.config, 'white')
-		
+
 		if self.lamp == 0:
 			writeDigispark(2, [1, red, green, blue, white])
 			self.app.lamp = 1;
-			log('Lamp On')
+			log(self.app.lamp)
+			onStr = 'on'
+			return onStr
 		else:
 			writeDigispark(2, [1, 0, 0, 0, 0])
 			self.app.lamp = 0;
-			log('Lamp Off')			
-		
-		return
+			log(self.app.lamp)
+			return 'off'
 
 
 class SleepMonitorApp:
@@ -492,10 +536,10 @@ class SleepMonitorApp:
 
         self.config = Config()
         self.reactor = reactor
-        
+
         self.sheepWatching = 0
         self.sheepPlaying = 0
-        
+
         self.lamp = 0
 
         self.oximeterReader = OximeterReader(self)
@@ -529,32 +573,32 @@ class SleepMonitorApp:
         root.putChild('ping', PingResource())
         root.putChild('getConfig', GetConfigResource(self))
         root.putChild('updateConfig', UpdateConfigResource(self))
-        
+
         # added
         root.putChild('getTemp', GetTemp(self))
         root.putChild('playMusic', PlayMusic(self))
         root.putChild('stopMusic', StopMusic(self))
-        root.putChild('startSheep', StartSheep(self))
-        root.putChild('stopSheep', StopSheep(self))
+        root.putChild('toggleSheep', ToggleSheep(self))
         root.putChild('toggleLamp', ToggleLamp(self))
-        
+        root.putChild('setSheep', SetSheep(self))
+
         sslContext = ssl.DefaultOpenSSLContextFactory(
-			'/home/pi/ssl/privkey.pem', 
+			'/home/pi/ssl/privkey.pem',
 			'/home/pi/ssl/cacert.pem',
 			)
-		
+
         site = server.Site(root)
         #PORT = 443
         PORT = 80
         #BACKUP_PORT = 80
         BACKUP_PORT = 8080
-	
+
         portUsed = PORT
         try:
             reactor.listenTCP(PORT, site)
             log('Started webserver at port %d' % PORT)
             #reactor.listenSSL(
-				#PORT, # integer port 
+				#PORT, # integer port
 				#site, # our site object, see the web howto
 				#contextFactory = sslContext,
 			#)
@@ -564,10 +608,10 @@ class SleepMonitorApp:
             log('Started webserver at port %d' % BACKUP_PORT)
 
         startZeroConfServer(portUsed)
-        
+
         startAudio()		#IfAvailable()
-		
-		
+
+
         reactor.run()
 
     def resetAfterConfigUpdate(self):

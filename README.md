@@ -27,6 +27,7 @@ Short press for on, long for off
 
 Variable gain  
 Select music player  
+Stream Google Play Music  
 Motion control of sheep  
 Wireless control of sheep  
 Button toggle sheep  

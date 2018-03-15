@@ -45,13 +45,33 @@ class SleepMonitorApp {
                 $('#latest').attr('src', '/stream.mjpeg?ts=' + Date.now().toString()).height('100%');
                 this.refreshImage = false;
             }
-            
+
             if (this.oximeterEnabled) {
                 this.refreshOximeterStats(data);
             }
 
             if (this.motionEnabled && data.motion == 1) {
                 this.motionAlarm.trigger("Baby's moving! <small>" + data.motionReason + "</small>");
+            }
+
+            if (data.lamp == 1){
+              $("#lightButton").css("box-shadow", "0 0 25px black");
+            }
+            else{
+              $("#lightButton").css("box-shadow", "none");
+            }
+
+            if (data.sheepPlaying == 1){
+              $("#sheepButton").css("box-shadow", "0 0 25px red");
+            }
+            else if (data.sheepWatching == 1 && data.sheepPlaying == 0){
+              $("#sheepButton").css("box-shadow", "0 0 25px black");
+              if (data.motion == 1){
+                $.get("/toggleSheep");
+              }
+            }
+            else{
+              $("#sheepButton").css("box-shadow", "none");
             }
 
         }).error(() => {
@@ -75,7 +95,7 @@ class SleepMonitorApp {
 
         setInterval(() => {
             this.refresh();
-        }, 1000);
+        }, 250);
 
         $('#dashboard').click(function() {
             var dashboardUrl = window.location.origin + ":3000/dashboard/db/sleep-monitor?refresh=5s&orgId=1&from=now-30m&to=now";

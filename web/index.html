@@ -20,38 +20,38 @@
     <script type="text/javascript" src="js/cam.js"></script>
     <script type="text/javascript" src="js/shake.js"></script>
 	<script type="text/javascript" src="js/meter.js"></script>
-	    
-    
+
+
     <script>
-    
+
         	function update() {
     		$.get("/getTemp", function(temp) {
     			tempString = parseFloat(temp).toFixed(1);
     			$("#tempButton").html(tempString);
-    			window.setTimeout(update, 10000); 
+    			window.setTimeout(update, 10000);
     		});
     	}
-    	
-    	//update();
-    	
+
+    	update();
+
     	    	function playMusic() {
     		$.get("/playMusic");
     	}
-    	
 
-    	
+
+
     </script>
-    
-    
 
-    
+
+
+
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="main.css"/>
 	<link rel="manifest" href="/manifest.json">
 	<meta name="viewport" content="initial-scale=1.0, width=device-width, user-scalable=no" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<link rel="apple-touch-icon" href="/launcher_icon-2x.png">
+	<!--<meta name="apple-mobile-web-app-capable" content="yes" />-->
+	<link rel="apple-touch-icon" sizes="114x114" href="apple-icon-114x114.png" />
   </head>
   <body>
     <div id="imageContainer">
@@ -64,80 +64,68 @@
 		<button id="tempButton" class="w3-button w3-circle w3-black w3-center">
 		<span class="glyphicon glyphicon-stats"></span></button>
 	</div>
-	<div id="musicButtonDiv">	
+	<div id="musicButtonDiv">
 		<button id="musicButton" class="w3-button w3-circle w3-black">
 		<span class="glyphicon glyphicon-music"></span></button>
 	</div>
-	<div id="sheepButtonDiv">	
+	<div id="sheepButtonDiv">
 		<button id="sheepButton" class="w3-button w3-circle w3-black">
 		<span class="glyphicon glyphicon-cloud"></span></button>
 	</div>
-	<div id="settingsButtonDiv">	
+	<div id="settingsButtonDiv">
 		<button id="settingsButton" class="w3-button w3-circle w3-black" onclick="window.open('update_config.html')">
 				<span class="glyphicon glyphicon-option-horizontal"></span></button>
 	</div>
-	<div id="lightButtonDiv">	
+	<div id="lightButtonDiv">
 		<button id="lightButton" class="w3-button w3-circle w3-black">
 		<span class="glyphicon glyphicon-lamp"></span></button>
 	</div>
-	
+
     <div id="alarmsContainer">
       <div id="internetConnectionAlarm" class="alarm">Internet connection to Pi lost!</div>
     </div>
 
     <script>
-    
+
     $(document).ready(function(){
     	$("#vuMeter").click( function (){
-    		
+
     		var vid = document.getElementById('remotevideo');
    			if(vid.volume == 0) vid.volume = 1;
    			else vid.volume = 0;
 		});
-		
+
 		$("#tempButton").click( function (){
-			
+
 			var href = window.location.protocol + "//" + window.location.hostname + ":3000/dashboard/db/sleep-monitor?from=now-12h&to=now";
 			window.open(href);
-			
+
 		});
-		
+
 		$('#sheepButton').longpress(function(e) {
-    		$.get("/stopSheep"); // change from black to white
+    		$.get("/setSheep"); // change from black to white
 		}, function(e) {
-    		$.get("/startSheep");  // Need to update this to be short press to toggle sheep, long to activate
+    		$.get("/toggleSheep");  // Need to update this to be short press to toggle sheep, long to activate
 		});
-		
+
 		$("#musicButton").click( function (){
     		$.get("/playMusic");
 		});
 
 		$("#lightButton").click( function (){
-    		$.get("/toggleLamp");
-		});		
-		
-		
+    		$.get("/toggleLamp", function(status){
+          if(status == "on"){
+            //$("#lightButton").css("box-shadow", "0 0 25px black");
+          }
+          else{
+            //$("#lightButton").css("box-shadow", "none");
+          }//set glow off
+        });
+		});
+
+
 	});
-	
-	/*
-	window.onload = function() {
-    //create a new instance of shake.js.
-    var myShakeEvent = new Shake({
-        threshold: 15
-    });
-    // start listening to device motion
-    myShakeEvent.start();
-    // register a shake event
-    window.addEventListener('shake', shakeEventDidOccur, false);
-    //shake event callback
-    function shakeEventDidOccur () {
-        //put your own code here etc.
-        alert('Shake!');
-    }*/
-	//};	
-		
-			//var href = window.location.protocol + "//" + window.location.hostname + ":3000/dashboard/db/sleep-monitor?orgId=1&from=now-12h&to=now&refresh=5s";
-		
+
 	</script>
   </body>
 </html>
