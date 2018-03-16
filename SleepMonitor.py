@@ -53,8 +53,10 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
 
-def ClearSheep():
-    self.app.sheepPlaying = 0
+def ClearSheep(app):
+    app.sheepPlaying = 0
+    app.t.cancel()
+    log('Clear')
 
 class RepeatingTimer(object):
 
@@ -69,7 +71,7 @@ class RepeatingTimer(object):
 
     def callback(self):
         self.f(*self.args, **self.kwargs)
-        self.start()
+        #self.start()
 
     def cancel(self):
         self.timer.cancel()
@@ -78,7 +80,7 @@ class RepeatingTimer(object):
         #self.timer = Timer(self.interval, self.callback)
         self.timer.start()
 
-t = RepeatingTimer(900, ClearSheep)
+#t = RepeatingTimer(10, ClearSheep)
 
 def read_temp_raw():
     f = open(device_file, 'r')
@@ -446,16 +448,17 @@ class StopMusic(resource.Resource):
 
 
 
-def StartSheep():
+def StartSheep(app):
     log('Start Sheep')
     writeDigispark(1, [1])
-    t.cancel()
-    t.start()
+    app.t = RepeatingTimer(900, ClearSheep, app)
+    app.t.start()
 
-def StopSheep():
+def StopSheep(app):
     log('Stop Sheep')
     writeDigispark(1, [2])
-    t.cancel()
+    app.t.cancel()
+    app.t = 0
 
 class ToggleSheep(resource.Resource):
     def __init__(self, app):
@@ -464,10 +467,10 @@ class ToggleSheep(resource.Resource):
     def render_GET(self, request):
         if self.app.sheepPlaying == 0:
             self.app.sheepPlaying = 1
-            StartSheep()
+            StartSheep(self.app)
         else:
             self.app.sheepPlaying = 0
-            StopSheep()
+            StopSheep(self.app)
 
 
         return
