@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import os
 import json
 import subprocess
+import io
 
 # added for temp sensor:
 import glob
@@ -465,15 +466,15 @@ class ToggleSheep(resource.Resource):
         self.app = app
 
     def render_GET(self, request):
-        if self.app.sheepPlaying == 0:
-            self.app.sheepPlaying = 1
-            StartSheep(self.app)
-        else:
+        if self.app.sheepPlaying == 1:
             self.app.sheepPlaying = 0
             StopSheep(self.app)
+            return
 
-
-        return
+        else:
+            self.app.sheepPlaying = 1
+            StartSheep(self.app)
+            return
 
 
 class SetSheep(resource.Resource):
@@ -536,6 +537,12 @@ class SleepMonitorApp:
 
     def __init__(self):
         queues = []
+
+        json_data = {'peak' : -10, 'peak_max' : -10}
+
+        with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
+            str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+            outfile.write(unicode(str_))
 
         self.config = Config()
         self.reactor = reactor

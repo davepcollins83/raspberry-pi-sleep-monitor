@@ -74,32 +74,32 @@ class Main:
 
 
 		peak_float = -500
-		
+
 		if t == Gst.MessageType.ELEMENT:
 
 			s = message.get_structure()
 			peak = s.get_value("peak")
-			
+
 			peak_float = float(peak[0])
-			
+
 			print peak_float
-			
+
 			with open('web/js/vol_data.json') as data_file:
 				data_loaded = json.load(data_file)
-			
-			peak_max = data_loaded['peak_max']	
-			
+
+			peak_max = data_loaded['peak_max']
+
 			if peak_float > peak_max:
 				peak_max = peak_float
-    		
-    		json_data = {'peak' : peak_float, 'peak_max' : peak_max}
-    		
-    		with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
-    			str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
-    			outfile.write(unicode(str_))
-		
 
-	
+			json_data = {'peak' : peak_float, 'peak_max' : peak_max}
+
+			with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
+				str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+				outfile.write(unicode(str_))
+
+
+
 Gst.init(None)
 start=Main()
 Gtk.main()

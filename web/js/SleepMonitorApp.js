@@ -61,18 +61,28 @@ class SleepMonitorApp {
               $("#lightButton").css("box-shadow", "none");
             }
 
-            if (data.sheepPlaying == 1){
-              $("#sheepButton").css("box-shadow", "0 0 25px red");
+            if (data.motion == 1){
+              $("#sheepIcon").css("color", "red");
             }
-            else if (data.sheepWatching == 1 && data.sheepPlaying == 0){
-              $("#sheepButton").css("box-shadow", "0 0 25px black");
-              if (data.motion == 1){
-                $.get("/toggleSheep");
-              }
+            else if (data.sheepWatching == 1){
+             $("#sheepIcon").css("color", "blue");
+            }
+            else{
+              $("#sheepIcon").css("color", "");
+            }
+
+            if (data.sheepPlaying == 1){
+             $("#sheepButton").css("box-shadow", "0 0 25px black");
             }
             else{
               $("#sheepButton").css("box-shadow", "none");
             }
+
+            if (data.motion == 1 && data.sheepPlaying == 0 && data.sheepWatching == 1){
+             $.get("/toggleSheep");
+            }
+
+
 
         }).error(() => {
             this.internetConnectionAlarm.trigger("Connection to Raspberry failed!");
