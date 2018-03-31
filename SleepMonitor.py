@@ -513,6 +513,34 @@ class ToggleLamp(resource.Resource):
 			log(self.app.lamp)
 			return 'off'
 
+class ForceLampOn(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+
+	def render_GET(self, request):
+
+		self.lamp = self.app.lamp
+		red = getattr(self.app.config, 'red')
+		green = getattr(self.app.config, 'green')
+		blue = getattr(self.app.config, 'blue')
+		white = getattr(self.app.config, 'white')
+
+		writeDigispark(2, [1, red, green, blue, white])
+		self.app.lamp = 1;
+		log(self.app.lamp)
+		onStr = 'on'
+		return onStr
+		
+class ForceLampOff(resource.Resource):
+	def __init__(self, app):
+		self.app = app
+
+	def render_GET(self, request):
+
+		writeDigispark(2, [1, 0, 0, 0, 0])
+		self.app.lamp = 0;
+		log(self.app.lamp)
+		return 'off'
 
 class SleepMonitorApp:
     def startGstreamerVideo(self):
@@ -591,6 +619,8 @@ class SleepMonitorApp:
         root.putChild('toggleSheep', ToggleSheep(self))
         root.putChild('toggleLamp', ToggleLamp(self))
         root.putChild('setSheep', SetSheep(self))
+        root.putChild('forceLampOn', ForceLampOn(self))
+        root.putChild('forceLampOff', ForceLampOff(self))
 
         sslContext = ssl.DefaultOpenSSLContextFactory(
 			'/home/pi/ssl/privkey.pem',
