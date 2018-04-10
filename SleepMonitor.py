@@ -447,17 +447,25 @@ class StopMusic(resource.Resource):
                               ['sh', 'stop_sound.sh'])
 		return
 
+class ForceMusic(resource.Resource):
+	def __init__(self, app):
+		self.app = app
 
+	def render_GET(self, request):
+
+		spawnNonDaemonProcess(reactor, LoggingProtocol('music-player'), '/bin/sh',
+                              ['sh', 'force_sound.sh'])
+		return
 
 def StartSheep(app):
     log('Start Sheep')
-    writeDigispark(1, [1])
+    #writeDigispark(1, [1])
     app.t = RepeatingTimer(900, ClearSheep, app)
     app.t.start()
 
 def StopSheep(app):
     log('Stop Sheep')
-    writeDigispark(1, [2])
+    #writeDigispark(1, [2])
     app.t.cancel()
     app.t = 0
 
@@ -469,11 +477,15 @@ class ToggleSheep(resource.Resource):
         if self.app.sheepPlaying == 1:
             self.app.sheepPlaying = 0
             StopSheep(self.app)
+            spawnNonDaemonProcess(reactor, LoggingProtocol('sheep'), '/bin/sh',
+                                  ['sh', 'sheep_off.sh'])
             return
 
         else:
             self.app.sheepPlaying = 1
             StartSheep(self.app)
+            spawnNonDaemonProcess(reactor, LoggingProtocol('sheep'), '/bin/sh',
+                                  ['sh', 'sheep_on.sh'])
             return
 
 
@@ -530,7 +542,7 @@ class ForceLampOn(resource.Resource):
 		log(self.app.lamp)
 		onStr = 'on'
 		return onStr
-		
+
 class ForceLampOff(resource.Resource):
 	def __init__(self, app):
 		self.app = app
@@ -571,6 +583,9 @@ class SleepMonitorApp:
         with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
             str_ = json.dumps(json_data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
             outfile.write(unicode(str_))
+
+        spawnNonDaemonProcess(reactor, LoggingProtocol('sheep'), '/bin/sh',
+                              ['sh', 'sheep_init.sh'])
 
         self.config = Config()
         self.reactor = reactor
@@ -621,6 +636,7 @@ class SleepMonitorApp:
         root.putChild('setSheep', SetSheep(self))
         root.putChild('forceLampOn', ForceLampOn(self))
         root.putChild('forceLampOff', ForceLampOff(self))
+        root.putChild('forceSound', ForceMusic(self))
 
         sslContext = ssl.DefaultOpenSSLContextFactory(
 			'/home/pi/ssl/privkey.pem',

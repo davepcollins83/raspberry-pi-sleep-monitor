@@ -65,6 +65,8 @@ class ProcessInput(basic.LineReceiver):
         	peak_max = data_loaded['peak_max']
             peak_float = data_loaded['peak']
 
+            peak_int = int(100 * (5-peak_max))
+
             json_data = {'peak' : peak_float, 'peak_max' : -10}
 
             with io.open('web/js/vol_data.json', 'w', encoding='utf8') as outfile:
@@ -82,7 +84,7 @@ class ProcessInput(basic.LineReceiver):
                     "bpm": bpm,
                     "motion": motion,
                     "alarm": alarm,
-                    "audio_float": peak_max,
+                    "audio": peak_int,
                     "temp": temp
                 }
             	}]
