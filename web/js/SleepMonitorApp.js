@@ -43,6 +43,7 @@ class SleepMonitorApp {
             this.internetConnectionAlarm.dismiss();
             if (this.refreshImage) {
                 $('#latest').attr('src', '/stream.mjpeg?ts=' + Date.now().toString()).height('100%');
+                location.reload();
                 this.refreshImage = false;
             }
 
